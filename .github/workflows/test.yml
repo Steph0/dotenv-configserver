@@ -24,8 +24,6 @@ jobs:
       -   name: "Checkout"
           id: checkout
           uses: actions/checkout@v2
-          with:
-              ref: ${{ github.ref }}
       - uses: ./
         with:
           milliseconds: 1000
