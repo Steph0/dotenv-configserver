@@ -1,25 +1,31 @@
-name: "units-test"
+name: "Test action"
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - 'releases/*'
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      ref:
+        description: "The repository ref <owner>/<repo>"
+        required: true
+        default: "Test/test"
 
 jobs:
-  # unit tests
-  units:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - run: npm ci
-    - run: npm test
+  # # unit tests
+  # units:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - uses: actions/checkout@v2
+  #   - run: npm ci
+  #   - run: npm test
 
   # test action works running from the graph
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: ./
-      with:
-        milliseconds: 1000
+      -   name: "Checkout"
+          id: checkout
+          uses: actions/checkout@v2
+          with:
+              ref: ${{ github.ref }}
+      - uses: ./
+        with:
+          milliseconds: 1000
