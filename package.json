@@ -1,7 +1,7 @@
 {
-  "name": "javascript-action",
+  "name": "dotenv-configserver",
   "version": "1.0.0",
-  "description": "JavaScript Action Template",
+  "description": "Load remote config to GITHUB_ENV from a configserver repository",
   "main": "index.js",
   "scripts": {
     "lint": "eslint .",
@@ -11,19 +11,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/javascript-action.git"
+    "url": "git+https://github.com/Steph0/dotenv-configserver.git"
   },
   "keywords": [
     "GitHub",
     "Actions",
-    "JavaScript"
+    "JavaScript",
+    "Dotenv",
+    "Configserver"
   ],
-  "author": "",
+  "author": "Steph0",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/actions/javascript-action/issues"
+    "url": "https://github.com/Steph0/dotenv-configserver/issues"
   },
-  "homepage": "https://github.com/actions/javascript-action#readme",
+  "homepage": "https://github.com/Steph0/dotenv-configserver",
   "dependencies": {
     "@actions/core": "^1.2.5"
   },
