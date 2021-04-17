@@ -27,7 +27,8 @@
   },
   "homepage": "https://github.com/Steph0/dotenv-configserver",
   "dependencies": {
-    "@actions/core": "^1.2.7"
+    "@actions/core": "^1.2.7",
+    "dotenv": "^8.2.0"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.27.0",
