@@ -72,7 +72,7 @@ async function run() {
     const ms = core.getInput('milliseconds');
     const settings = inputs();
     core.info(`Waiting ${ms} milliseconds ...`);
-    core.info(`Inputs ${settings}`);
+    core.info(settings);
     core.setOutput('time', new Date().toTimeString());
   } catch (error) {
     core.setFailed(error.message);
