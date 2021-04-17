@@ -1,17 +1,27 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: "Load dotenv config"
+description: "Load dotenv remote configuration to GITHUB_ENV"
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
-    required: true
-    default: '1000'
   ref:
-    description: 'The repository ref <owner>/<repo>'
+    description: "The repository ref <owner>/<repo>"
     required: true
-    default: 'Test/test'
+  branch:
+    description: "Branch containing configuration (default 'main')"
+    required: false
+  directory:
+    description: "Subdirectory containing target dotenv file (default '.')"
+    required: false
+  filename:
+    description: "Subdirectory containing target dotenv file (default 'application.yml')"
+    required: false
+  profile:
+    description: "If given, will split inject profile in filename (ex: application-<profile>.yml)"
+    required: false
+  cleanup:
+    description: "Delete configuration after loading (default 'true')"
+    required: false
 # outputs:
 #   time: # output will be available to future steps
-#     description: 'The message to output'
+#     description: "The message to output"
 runs:
-  using: 'node12'
-  main: '../dist/index.js'
+  using: "node12"
+  main: "../dist/index.js"

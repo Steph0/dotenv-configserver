@@ -48,9 +48,8 @@ const inputs = () => {
       // The repository to fetch
       ref: core.getInput('ref'),
 
-      // The branch to checkout (env = alias)
-      branch: core.getInput('branch'),
-      env: core.getInput('env'),
+      // The branch to checkout (default: main)
+      branch: core.getInput('branch') || "main",
 
       // Look for file in subdirectory
       directory: core.getInput('directory') || '.',
@@ -61,7 +60,10 @@ const inputs = () => {
       // profile for file (ex: 'prod' will make tool look for <filename_part>-<profile>.<filename_extension>)
       // extension represents the last dot of a filename (if any)
       // if empty, won't apply
-      profile: core.getInput('profile') || ''
+      profile: core.getInput('profile') || '',
+
+      // If false, won't delete configuration files downloaded after loading to GITHUB_ENV
+      cleanup: core.getInput('cleanup') || true
    };
 }
 
@@ -72,7 +74,7 @@ async function run() {
     const ms = core.getInput('milliseconds');
     const settings = inputs();
     core.info(`Waiting ${ms} milliseconds ...`);
-    core.info(settings);
+    core.debug(settings);
     core.setOutput('time', new Date().toTimeString());
   } catch (error) {
     core.setFailed(error.message);

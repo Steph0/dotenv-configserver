@@ -27,3 +27,4 @@ jobs:
       - uses: ./
         with:
           milliseconds: 1000
+          ref: "${{ github.event.inputs.ref }}"
