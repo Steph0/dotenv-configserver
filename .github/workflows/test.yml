@@ -1,30 +1,43 @@
 name: "Test action"
 on:
   workflow_dispatch:
-    # Inputs the workflow accepts.
     inputs:
-      ref:
-        description: "The repository ref <owner>/<repo>"
+      repository:
+        description: "Repository to fetch (<owner>/<repo>)"
         required: true
-        default: "Test/test"
+      token:
+        description: "Access token (you might provide GITHUB_TOKEN)"
+        required: true
+      branch:
+        description: "Branch to checkout (default: main)"
+        required: false
+      directory:
+        description: "Look for file in subdirectory (default '.')"
+        required: false
+      filename:
+        description: "Config filename (default to 'main.env')"
+        required: false
+        default: "main.env"
+      profile:
+        description: "Profile for file (ex: 'prod' ~= main-prod.env)"
+        required: false
+      destination:
+        description: "Working folder to write configuration to (default '.')"
+        required: false
+      cleanup:
+        description: "If false, won't delete configuration files (default true)"
+        required: false
 
 jobs:
-  # # unit tests
-  # units:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v2
-  #   - run: npm ci
-  #   - run: npm test
-
-  # test action works running from the graph
   test:
     runs-on: ubuntu-latest
     steps:
       -   name: "Checkout"
           id: checkout
           uses: actions/checkout@v2
-      - uses: ./
+
+      - name: "Launch action"
+        uses: ./
         with:
-          milliseconds: 1000
-          ref: "${{ github.event.inputs.ref }}"
+          repository: "${{ github.event.inputs.repository }}"
+          token: "${{ secrets.ACTION_TOKEN }}"

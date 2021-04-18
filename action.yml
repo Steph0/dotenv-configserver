@@ -7,6 +7,9 @@ inputs:
   branch:
     description: "Branch containing configuration (default 'main')"
     required: false
+  destination:
+    description: "Working folder to write configuration to (default '.')"
+    required: false
   directory:
     description: "Subdirectory containing target dotenv file (default '.')"
     required: false
