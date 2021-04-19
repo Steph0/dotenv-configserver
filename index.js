@@ -12,7 +12,6 @@ const exportToGithubEnv = (envData = {}) => {
    for (const [envKey, envValue] of Object.entries(envData)) {
       core.info(`Exporting [${envKey}: ${envValue}]`);
       core.exportVariable(envKey, envValue);
-      core.setOutput(envKey, envValue);
    }
 }
 
@@ -125,7 +124,7 @@ const inputs = () => {
       // token: ${{ secrets.GITHUB_TOKEN }}
       token: core.getInput('token', { required: true }),
 
-      // The branch to checkout (default: main)
+      // The remote branch to checkout (default: main)
       branch: core.getInput('branch') || "main",
 
       // The working folder to write configuration to (default 'RUNNER_TEMP')
@@ -134,8 +133,8 @@ const inputs = () => {
       // Look for file in subdirectory (default '.')
       directory: core.getInput('directory') || '.',
 
-      // The config filename (default to 'env')
-      filename: core.getInput('filename') || "env",
+      // The config filename (default to '.env')
+      filename: core.getInput('filename') || ".env",
 
       // profile for file (ex: 'prod' will make tool look for <filename_part>-<profile>.<filename_extension>)
       // extension represents the last dot of a filename (if any)
@@ -168,9 +167,9 @@ async function run() {
       const envData = loadDotenvFile(configurationFile);
       core.debug(envData);
 
-      // Publish outputs + file to GITHUB_ENV
+      // Publish file to GITHUB_ENV
       exportToGithubEnv(envData);
-      core.info(`Configuration successfully loaded from configserver to GITHUB_ENV and outputs`);
+      core.info(`Configuration successfully loaded from configserver to GITHUB_ENV`);
 
       await cleanup(configDirectory, settings.cleanup);
 

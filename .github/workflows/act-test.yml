@@ -9,7 +9,7 @@ on:
         description: "Access token (you might provide GITHUB_TOKEN)"
         required: true
       branch:
-        description: "Branch to checkout (default: main)"
+        description: "Remote branch to checkout (default: main)"
         required: false
       directory:
         description: "Look for file in subdirectory (default '.')"

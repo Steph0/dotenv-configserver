@@ -1,11 +1,14 @@
 name: "Load dotenv config"
 description: "Load dotenv remote configuration to GITHUB_ENV"
 inputs:
-  ref:
+  repository:
     description: "The repository ref <owner>/<repo>"
     required: true
+  token:
+    description: "Access token (you might provide GITHUB_TOKEN)"
+    required: true
   branch:
-    description: "Branch containing configuration (default 'main')"
+    description: "Remote branch containing configuration (default 'main')"
     required: false
   destination:
     description: "Working folder to write configuration to (default '.')"
@@ -22,9 +25,7 @@ inputs:
   cleanup:
     description: "Delete configuration after loading (default 'true')"
     required: false
-# outputs:
-#   time: # output will be available to future steps
-#     description: "The message to output"
+
 runs:
   using: "node12"
   main: "../dist/index.js"
