@@ -100,6 +100,20 @@ const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
    return dotenvConfigPath;
 };
 
+const cleanup = (configDirectory, cleanup = true) => {
+   if(!configDirectory) {
+      throw new Error('Could not find a config directory to delete');
+   }
+
+   if(!cleanup){
+      core.warning('Downloaded configuration from configserver has not been cleaned from runner');
+      return;
+   }
+
+   await io.rmRF(configDirectory);
+   core.info(`Configuration cleaned from runner`);
+}
+
 const inputs = () => {
    return {
       // The repository to fetch (<owner>/<repo>)
@@ -157,6 +171,8 @@ async function run() {
       // Publish outputs + file to GITHUB_ENV
       exportToGithubEnv(envData);
       core.info(`Configuration successfully loaded from configserver to GITHUB_ENV and outputs`);
+
+      cleanup(configDirectory, settings.cleanup);
 
    } catch (error) {
       core.setFailed(error.message);
