@@ -15,11 +15,11 @@ on:
         description: "Look for file in subdirectory (default '.')"
         required: false
       filename:
-        description: "Config filename (default to 'main.env')"
+        description: "Config filename, with or without extension (default to '.env')"
         required: false
-        default: "main.env"
+        default: ".env"
       profile:
-        description: "Profile for file (ex: 'prod' ~= main-prod.env)"
+        description: "Profile for file (ex: 'prod' ~= prod.env)"
         required: false
       destination:
         description: "Working folder to write configuration to (default '.')"
@@ -41,3 +41,13 @@ jobs:
         with:
           repository: "${{ github.event.inputs.repository }}"
           token: "${{ secrets.ACTION_TOKEN }}"
+          branch: "${{ github.event.inputs.branch }}"
+          directory: "${{ github.event.inputs.directory }}"
+          filename: "${{ github.event.inputs.filename }}"
+          profile: "${{ github.event.inputs.profile }}"
+          destination: "${{ github.event.inputs.destination }}"
+          cleanup: "${{ github.event.inputs.cleanup }}"
+      
+      # You should see your .env config in 'env'
+      - name: "See exported values"
+        run: env

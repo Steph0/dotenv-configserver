@@ -1,6 +1,10 @@
 {
   "action": "workflow_dispatch",
   "inputs": {
-      "repository": "Steph0/test-configserver"
+      "repository": "Steph0/test-configserver",
+      "branch": "test-profile",
+      "directory": "test",
+      "filename": "application.env",
+      "profile": "prod"
   }
 }

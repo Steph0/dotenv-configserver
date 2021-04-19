@@ -7,104 +7,62 @@ const path = require('path');
 const dotenv = require('dotenv');
 const {v4: uuidv4} = require('uuid');
 
-// function downloadConfiguration() {
+const exportToGithubEnv = (envData = {}) => {
+   core.info(`Exporting to GITHUB_ENV`);
+   for (const [envKey, envValue] of Object.entries(envData)) {
+      core.info(`Exporting [${envKey}: ${envValue}]`);
+      core.exportVariable(envKey, envValue);
+      core.setOutput(envKey, envValue);
+   }
+}
 
-// Build repo url
-// core.info(
-//    `Syncing repository: ${settings.repositoryOwner}/${settings.repositoryName}`
-//  );
-//  const repositoryUrl = urlHelper.getFetchUrl(settings);
+const buildEnvFilename = (root, directory, filename, profile = '') => {
 
-// Define 'repository'
-// result.repository = core.getInput('repository')
-// if (!result.repository) {
-//   if (isWorkflowRepository) {
-//     result.repository = github.context.repository
-//     result.commit = github.context.sha
+   const hasExtension = (filename.lastIndexOf('.') !== -1);
+   const namePart = (hasExtension) ? filename.substring(0, filename.lastIndexOf('.')) : filename;
+   const extensionPart = (hasExtension) ? filename.substring(filename.lastIndexOf('.'), filename.length) : '';
+   core.debug(`${filename} -> name:[${namePart}], extension: [${extensionPart}]`);
 
-//     // Some events have an unqualifed repository. For example when a PR is merged (pull_request closed event),
-//     // the repository is unqualifed like "main" instead of "repositorys/heads/main".
-//     if (result.commit && result.repository && !result.repository.startsWith('repositorys/')) {
-//       result.repository = `repositorys/heads/${result.repository}`
-//     }
-//   }
-// }
-// // SHA?
-// else if (result.repository.match(/^[0-9a-fA-F]{40}$/)) {
-//   result.commit = result.repository
-//   result.repository = ''
-// }
-// core.debug(`repository = '${result.repository}'`)
-// core.debug(`commit = '${result.commit}'`)
+   // If no profile, just use current filename
+   let profiledFilename = filename;
+   if(profile) {
+      if(namePart === '' && extensionPart !== ''){
+         // Input from user has no filename (like just an extension '.env' file)
+         // Inject profile without the '-' part
+         // Ex: profile=prod + filename=.env => 'prod.env'
+         profiledFilename = `${profile}${extensionPart}`;
+      } else if(namePart !== '' && extensionPart === ''){
+         // Input from user has no extension, add '.env' to it automatically
+         // Ex: profile=prod + filename=application => 'application-prod.env'
+         profiledFilename = `${namePart}-${profile}.env`;
+      } else if(namePart !== '' && extensionPart !== ''){
+         // Input has name + extension, inject profile between name and extension
+         // Ex: profile=prod + filename=application.env => 'application-prod.env'
+         profiledFilename = `${namePart}-${profile}${extensionPart}`;
+      }
+   }
 
+   return path.join(root, directory, profiledFilename);
+}
 
-// Auth token
-//   result.authToken = core.getInput('token', {required: true})
-
-// Destination on runner
-//  process.env['RUNNER_TEMP']
-
-// Download archive
-
-// Extract archive
-// }
-
-
-
-const loadDotenvFile = (filepath = '.env') => {
+const loadDotenvFile = (filepath) => {
+   core.info(`Loading [${filepath}] file`);
    return dotenv.parse(
       fs.readFileSync(filepath)
    );
 };
 
-const cloneConfigTar = async (owner, repo, branch, token, destination) => {
+const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
    // Making sure target path is accessible
    await io.mkdirP(destination);
 
    // Login with token
    const octokit = github.getOctokit(token);
-
-   const params = {
-      owner: owner,
-      repo: repo,
-      ref: branch
-   };
-   core.info("Downloading tar archive");
-   core.debug(params);
-   const response = await octokit.repos.downloadTarballArchive(params);
-   if (response.status != 200) {
-      throw new Error(`Enable to fetch repository. HTTP:[${response.status}], content:[${response.data}]`);
-   }
-
-   const downloadUuid = uuidv4();
-   console.dir(downloadUuid);
-   const archiveFilepath = path.join(destination, `archive-${repo}-${downloadUuid}.tar.gz`);
-   core.info(`Writing archive file [${archiveFilepath}] to disk`);
-   const archiveData = Buffer.from(response.data);
-   await fs.promises.writeFile(archiveFilepath, archiveData);
-
-   // Extract archive
-   const repoPath = path.join(destination, `${repo}-${downloadUuid}`);
-   core.info(`Extracting archive to [${repoPath}]`);
-   await tc.extractTar(archiveFilepath, repoPath);
-
-   // Cleanup archive
-   await io.rmRF(archiveFilepath);
-
-   // Env content is in archives single folder
-   const archiveContent = await fs.promises.readdir(repoPath);
-   const dotenvConfigPath = path.resolve(archiveContent[0]); // The top-level folder name includes the short SHA
-   core.info(`Configuration available at [${dotenvConfigPath}]`);
-
-   return dotenvConfigPath;
-};
-
-const cloneConfigZip = async (owner, repo, branch, token, destination) => {
-   // Making sure target path is accessible
-   await io.mkdirP(destination);
-
-   // Login with token
-   const octokit = github.getOctokit(token);
+   // Detect platform
+   const onWindows = (process.platform === 'win32');
+   const downloadRepo = (onWindows) ? octokit.repos.downloadZipballArchive : octokit.repos.downloadTarballArchive;
+   const archiveExt = (onWindows) ? '.zip' : '.tar.gz';
+   const extract = (onWindows) ? tc.extractZip : tc.extractTar;
 
    const params = {
       owner: owner,
@@ -113,14 +71,13 @@ const cloneConfigZip = async (owner, repo, branch, token, destination) => {
    };
    core.info("Downloading zip archive");
    core.debug(params);
-   const response = await octokit.repos.downloadZipballArchive(params);
+   const response = await downloadRepo(params);
    if (response.status != 200) {
       throw new Error(`Enable to fetch repository. HTTP:[${response.status}], content:[${response.data}]`);
    }
 
    const downloadUuid = uuidv4();
-   console.dir(downloadUuid);
-   const archiveFilepath = path.join(destination, `archive-${repo}-${downloadUuid}.zip`);
+   const archiveFilepath = path.join(destination, `archive-${repo}-${downloadUuid}${archiveExt}`);
    core.info(`Writing archive file [${archiveFilepath}] to disk`);
    const archiveData = Buffer.from(response.data);
    await fs.promises.writeFile(archiveFilepath, archiveData);
@@ -128,14 +85,16 @@ const cloneConfigZip = async (owner, repo, branch, token, destination) => {
    // Extract archive
    const repoPath = path.join(destination, `${repo}-${downloadUuid}`);
    core.info(`Extracting archive to [${repoPath}]`);
-   await tc.extractZip(archiveFilepath, repoPath);
+   await extract(archiveFilepath, repoPath);
 
    // Cleanup archive
    await io.rmRF(archiveFilepath);
 
    // Env content is in archives single folder
    const archiveContent = await fs.promises.readdir(repoPath);
-   const dotenvConfigPath = path.resolve(archiveContent[0]); // The top-level folder name includes the short SHA
+   const dotenvConfigPath = path.resolve(
+      path.join(repoPath, archiveContent[0])
+   );
    core.info(`Configuration available at [${dotenvConfigPath}]`);
 
    return dotenvConfigPath;
@@ -155,14 +114,14 @@ const inputs = () => {
       // The branch to checkout (default: main)
       branch: core.getInput('branch') || "main",
 
-      // The working folder to write configuration to (default '.')
-      destination: core.getInput('destination') || '.',
+      // The working folder to write configuration to (default 'RUNNER_TEMP')
+      destination: core.getInput('destination') || process.env['RUNNER_TEMP'] || '.',
 
       // Look for file in subdirectory (default '.')
       directory: core.getInput('directory') || '.',
 
-      // The config filename (default to 'main.env')
-      filename: core.getInput('filename') || "main.env",
+      // The config filename (default to 'env')
+      filename: core.getInput('filename') || "env",
 
       // profile for file (ex: 'prod' will make tool look for <filename_part>-<profile>.<filename_extension>)
       // extension represents the last dot of a filename (if any)
@@ -178,16 +137,27 @@ const inputs = () => {
 // 'core.debug' displays only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
 async function run() {
    try {
+      // Load inputs
       const settings = inputs();
       core.debug(settings);
-      core.debug(loadDotenvFile());
-      if (process.platform === 'win32') {
-         // Windows
-         cloneConfigZip(settings.owner, settings.repo, settings.branch, settings.token, settings.destination);
-      } else {
-         // Unix
-         cloneConfigTar(settings.owner, settings.repo, settings.branch, settings.token, settings.destination);
-      }
+
+      // Clone remote configserver
+      const configDirectory = await cloneDotenvConfig(settings.owner, settings.repo, settings.branch,
+         settings.token, settings.destination);
+
+      // Define file to look for in configserver
+      const configurationFile = buildEnvFilename(configDirectory, settings.directory,
+         settings.filename, settings.profile)
+      core.info(`Expected configuration filename: [${configurationFile}]`);
+
+      // Load targeted configserver file content
+      const envData = loadDotenvFile(configurationFile);
+      core.debug(envData);
+      
+      // Publish outputs + file to GITHUB_ENV
+      exportToGithubEnv(envData);
+      core.info(`Configuration successfully loaded from configserver to GITHUB_ENV and outputs`);
+
    } catch (error) {
       core.setFailed(error.message);
    }
