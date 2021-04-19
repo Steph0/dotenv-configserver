@@ -1,13 +1,36 @@
-name: 'Wait'
-description: 'Wait a designated number of milliseconds'
+name: "Remote dotenv to Environment (configserver alike)"
+description: "Export remote dotenv configuration to GITHUB_ENV. With multiple options (alike a Spring Cloud Config server)"
+branding:
+  icon: "arrow-down"
+  color: "blue"
+
 inputs:
-  milliseconds:  # id of input
-    description: 'number of milliseconds to wait'
+  repository:
+    description: "The repository ref <owner>/<repo>"
     required: true
-    default: '1000'
-outputs:
-  time: # output will be available to future steps
-    description: 'The message to output'
+  token:
+    description: "Access token (you might provide GITHUB_TOKEN)"
+    required: false
+    default: ${{ github.token }}
+  branch:
+    description: "Remote branch containing configuration (default 'main')"
+    required: false
+  destination:
+    description: "Working folder to write configuration to (default '.')"
+    required: false
+  directory:
+    description: "Subdirectory containing target dotenv file (default '.')"
+    required: false
+  filename:
+    description: "Subdirectory containing target dotenv file (default 'application.yml')"
+    required: false
+  profile:
+    description: "If given, will split inject profile in filename (ex: application-<profile>.yml)"
+    required: false
+  cleanup:
+    description: "Delete configuration after loading (default 'true')"
+    required: false
+
 runs:
-  using: 'node12'
-  main: 'dist/index.js'
+  using: "node12"
+  main: "dist/index.js"

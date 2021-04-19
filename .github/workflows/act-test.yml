@@ -1,0 +1,52 @@
+name: "Test action"
+on:
+  workflow_dispatch:
+    inputs:
+      repository:
+        description: "Repository to fetch (<owner>/<repo>)"
+        required: true
+      token:
+        description: "Access token - PAT"
+        required: true
+      branch:
+        description: "Remote branch to checkout (default: main)"
+        required: false
+      directory:
+        description: "Look for file in subdirectory (default '.')"
+        required: false
+      filename:
+        description: "Config filename, with or without extension (default to '.env')"
+        required: false
+      profile:
+        description: "Profile for file (ex: 'prod' ~= prod.env)"
+        required: false
+      destination:
+        description: "Working folder to write configuration to (default '.')"
+        required: false
+      cleanup:
+        description: "If false, won't delete configuration files (default true)"
+        required: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      -   name: "Checkout"
+          id: checkout
+          uses: actions/checkout@v2
+
+      - name: "Launch action"
+        uses: ./
+        with:
+          repository: "${{ github.event.inputs.repository }}"
+          token: "${{ github.event.inputs.token }}"
+          branch: "${{ github.event.inputs.branch }}"
+          directory: "${{ github.event.inputs.directory }}"
+          filename: "${{ github.event.inputs.filename }}"
+          profile: "${{ github.event.inputs.profile }}"
+          destination: "${{ github.event.inputs.destination }}"
+          cleanup: "${{ github.event.inputs.cleanup }}"
+      
+      # You should see your .env config in 'env'
+      - name: "See exported values"
+        run: env
