@@ -25,17 +25,17 @@ const buildEnvFilename = (root, directory, filename, profile = '') => {
 
    // If no profile, just use current filename
    let profiledFilename = filename;
-   if(profile) {
-      if(namePart === '' && extensionPart !== ''){
+   if (profile) {
+      if (namePart === '' && extensionPart !== '') {
          // Input from user has no filename (like just an extension '.env' file)
          // Inject profile without the '-' part
          // Ex: profile=prod + filename=.env => 'prod.env'
          profiledFilename = `${profile}${extensionPart}`;
-      } else if(namePart !== '' && extensionPart === ''){
+      } else if (namePart !== '' && extensionPart === '') {
          // Input from user has no extension, add '.env' to it automatically
          // Ex: profile=prod + filename=application => 'application-prod.env'
          profiledFilename = `${namePart}-${profile}.env`;
-      } else if(namePart !== '' && extensionPart !== ''){
+      } else if (namePart !== '' && extensionPart !== '') {
          // Input has name + extension, inject profile between name and extension
          // Ex: profile=prod + filename=application.env => 'application-prod.env'
          profiledFilename = `${namePart}-${profile}${extensionPart}`;
@@ -101,11 +101,11 @@ const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
 };
 
 const cleanup = async (configDirectory, cleanup = true) => {
-   if(!configDirectory) {
+   if (!configDirectory) {
       throw new Error('Could not find a config directory to delete');
    }
 
-   if(!cleanup){
+   if (!cleanup) {
       core.warning('Downloaded configuration from configserver has not been cleaned from runner');
       return;
    }
@@ -117,13 +117,13 @@ const cleanup = async (configDirectory, cleanup = true) => {
 const inputs = () => {
    return {
       // The repository to fetch (<owner>/<repo>)
-      repository: core.getInput('repository'),
-      owner: core.getInput('repository').split('/')[0],
-      repo: core.getInput('repository').split('/')[1],
+      repository: core.getInput('repository', { required: true }),
+      owner: core.getInput('repository', { required: true }).split('/')[0],
+      repo: core.getInput('repository', { required: true }).split('/')[1],
 
       // This should be a token with access to your repository scoped in as a secret
       // token: ${{ secrets.GITHUB_TOKEN }}
-      token: core.getInput('token'),
+      token: core.getInput('token', { required: true }),
 
       // The branch to checkout (default: main)
       branch: core.getInput('branch') || "main",
@@ -167,7 +167,7 @@ async function run() {
       // Load targeted configserver file content
       const envData = loadDotenvFile(configurationFile);
       core.debug(envData);
-      
+
       // Publish outputs + file to GITHUB_ENV
       exportToGithubEnv(envData);
       core.info(`Configuration successfully loaded from configserver to GITHUB_ENV and outputs`);
