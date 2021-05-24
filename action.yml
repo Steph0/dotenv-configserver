@@ -15,20 +15,25 @@ inputs:
   branch:
     description: "Remote branch containing configuration (default 'main')"
     required: false
+    default: "main"
   destination:
     description: "Working folder to write configuration to (default '.')"
     required: false
+    default: "."
   directory:
     description: "Subdirectory containing target dotenv file (default '.')"
     required: false
+    default: "."
   filename:
     description: "Subdirectory containing target dotenv file (default 'application.yml')"
     required: false
+    default: "application.yml"
   profile:
     description: "If given, will split inject profile in filename (ex: application-<profile>.yml)"
     required: false
   cleanup:
     description: "Delete configuration after loading (default 'true')"
+    default: true
     required: false
 
 runs:

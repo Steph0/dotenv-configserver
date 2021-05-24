@@ -1,8 +1,9 @@
 # Environment from remote dotenv config server
 
-Load dotenv (.env) files from a remote repository and loads it to `GITHUB_ENV`.
+Load dotenv (.env) files from a remote repository and load it to `GITHUB_ENV` and `outputs`.
 
-Env variables will be then available using `${{ env.<KEY> }}` in your later jobs/actions.
+[Environment variables](https://docs.github.com/en/actions/reference/environment-variables#about-environment-variables) will be then available using `${{ env.<KEY> }}` within the same job.<br>
+[Outputs](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#needs-context) will be then available using `${{ <job id>.outputs.<output name> }}` for other jobs.
 
 **This action can work as a workaround from missing Github Environments tab in Github Teams plan**
 
@@ -21,8 +22,9 @@ Env variables will be then available using `${{ env.<KEY> }}` in your later jobs
 
 ## Usage
 
-This action allows many directory structure in your configserver.
-This section illustrates dotenv-configserver configurations according to common examples of configserver directory structures:
+This action allows many directories structures in your configserver.
+
+This section illustrates common configserver configurations that could be used for your projects/enterprise:
 
 ### Basic
 
@@ -123,7 +125,6 @@ jobs:
       - name: "See exported values"
         run: env
 ```
-
 
 ### Nested directories
 

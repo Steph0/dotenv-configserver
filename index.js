@@ -7,14 +7,31 @@ const path = require('path');
 const dotenv = require('dotenv');
 const {v4: uuidv4} = require('uuid');
 
+/**
+ * Sets env variable for the job
+ */
 const exportToGithubEnv = (envData = {}) => {
    core.info(`Exporting to GITHUB_ENV`);
    for (const [envKey, envValue] of Object.entries(envData)) {
-      core.info(`Exporting [${envKey}: ${envValue}]`);
+      core.info(`Exporting to GITHUB_ENV [${envKey}: ${envValue}]`);
       core.exportVariable(envKey, envValue);
    }
 }
 
+/**
+ * Sets output variable that can be used between jobs
+ */
+const exportToOutput = (envData = {}) => {
+   core.info(`Exporting to output`);
+   for (const [envKey, envValue] of Object.entries(envData)) {
+      core.info(`Exporting [${envKey}: ${envValue}]`);
+      core.setOutput(envKey, envValue);
+   }
+}
+
+/**
+ * Determines target configuration filename based on action settings
+ */
 const buildEnvFilename = (root, directory, filename, profile = '') => {
 
    const hasExtension = (filename.lastIndexOf('.') !== -1);
@@ -44,6 +61,9 @@ const buildEnvFilename = (root, directory, filename, profile = '') => {
    return path.join(root, directory, profiledFilename);
 }
 
+/**
+ * Parse env file
+ */
 const loadDotenvFile = (filepath) => {
    core.info(`Loading [${filepath}] file`);
    return dotenv.parse(
@@ -51,6 +71,9 @@ const loadDotenvFile = (filepath) => {
    );
 };
 
+/**
+ * Fetches files from remote configserver
+ */
 const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
    // Making sure target path is accessible
    await io.mkdirP(destination);
@@ -59,7 +82,7 @@ const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
    const octokit = github.getOctokit(token);
    // Detect platform
    const onWindows = (process.platform === 'win32');
-   const downloadRepo = (onWindows) ? octokit.repos.downloadZipballArchive : octokit.repos.downloadTarballArchive;
+   const downloadRepo = (onWindows) ? octokit.rest.repos.downloadZipballArchive : octokit.rest.repos.downloadTarballArchive;
    const archiveExt = (onWindows) ? '.zip' : '.tar.gz';
    const extract = (onWindows) ? tc.extractZip : tc.extractTar;
 
@@ -99,6 +122,9 @@ const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
    return dotenvConfigPath;
 };
 
+/**
+ * Remove configserver files from runner
+ */
 const cleanup = async (configDirectory, cleanup = true) => {
    if (!configDirectory) {
       throw new Error('Could not find a config directory to delete');
@@ -171,6 +197,11 @@ async function run() {
       exportToGithubEnv(envData);
       core.info(`Configuration successfully loaded from configserver to GITHUB_ENV`);
 
+      // Publish file to output
+      exportToOutput(envData);
+      core.info(`Configuration successfully loaded from configserver to output`);
+
+      // Clean download env files
       await cleanup(configDirectory, settings.cleanup);
 
    } catch (error) {
