@@ -2,7 +2,7 @@
   "action": "workflow_dispatch",
   "inputs": {
       "repository": "Steph0/test-configserver",
-      "token": "",
+      "token": "ADD_YOUR_TEST_PAT_HERE_TO_RUN_ACT",
       "branch": "test-profile",
       "directory": "test",
       "filename": "application.env",
