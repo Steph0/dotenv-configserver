@@ -125,12 +125,12 @@ const cloneDotenvConfig = async (owner, repo, branch, token, destination) => {
 /**
  * Remove configserver files from runner
  */
-const cleanup = async (configDirectory, cleanup = true) => {
+const cleanup = async (configDirectory, performCleanup = true) => {
    if (!configDirectory) {
       throw new Error('Could not find a config directory to delete');
    }
 
-   if (!cleanup) {
+   if (!performCleanup) {
       core.warning('Downloaded configuration from configserver has not been cleaned from runner');
       return;
    }

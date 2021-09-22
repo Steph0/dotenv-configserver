@@ -1,11 +1,13 @@
-# Environment from remote dotenv config server
+# Environment variables from a remote (centralized) config server
 
-Load dotenv (.env) files from a remote repository and load it to `GITHUB_ENV` and `outputs`.
+Loads dotenv (.env) files content from a remote repository to `GITHUB_ENV` and `outputs`.
+This action can be used like a [config server](https://cloud.spring.io/spring-cloud-config/reference/html/) but for your Github actions.
+
+**This action can work as a workaround if you do not beneficiate of [Github Environments](https://docs.github.com/en/actions/deployment/environments) feature in your Github plan**
+Common example: your enterprise is using Github Teams plan and private repositories.
 
 [Environment variables](https://docs.github.com/en/actions/reference/environment-variables#about-environment-variables) will be then available using `${{ env.<KEY> }}` within the same job.<br>
 [Outputs](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#needs-context) will be then available using `${{ <job id>.outputs.<output name> }}` for other jobs.
-
-**This action can work as a workaround from missing Github Environments tab in Github Teams plan**
 
 ## Configuration
 
@@ -175,11 +177,9 @@ jobs:
 
 ## Development
 
-Install
-
 ```bash
 # Install dependencies
-npm install
+npm ci
 # Build action
 npm run all
 ```
