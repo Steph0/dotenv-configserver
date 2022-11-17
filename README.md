@@ -45,7 +45,7 @@ jobs:
     steps:
       -   name: "Checkout"
           id: checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout3
 
       - name: "Launch action"
         uses: Steph0/dotenv-configserver
@@ -78,7 +78,7 @@ jobs:
     steps:
       -   name: "Checkout"
           id: checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout3
 
       - name: "Launch action"
         uses: Steph0/dotenv-configserver
@@ -113,7 +113,7 @@ jobs:
     steps:
       -   name: "Checkout"
           id: checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
 
       - name: "Launch action"
         uses: Steph0/dotenv-configserver
@@ -154,7 +154,7 @@ jobs:
     steps:
       -   name: "Checkout"
           id: checkout
-          uses: actions/checkout@v2
+          uses: actions/checkout@v3
 
       - name: "Launch action"
         uses: Steph0/dotenv-configserver
