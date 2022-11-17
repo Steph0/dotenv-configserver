@@ -29,9 +29,9 @@ inputs:
     required: false
   cleanup:
     description: "Delete configuration after loading (default 'true')"
-    default: true
+    default: "true"
     required: false
 
 runs:
-  using: "node12"
+  using: "node16"
   main: "dist/index.js"
