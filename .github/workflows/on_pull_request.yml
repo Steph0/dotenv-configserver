@@ -1,0 +1,38 @@
+name: "[Auto] Pull Request checks"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  run_tests:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    name: "PR Application quality"
+    timeout-minutes: 15
+    steps:
+      - name: "Checkout branch that triggered the run"
+        uses: actions/checkout@v3
+        with:
+            ref: "${{ github.event.pull_request.head.sha }}"
+            # Disabling shallow clone is recommended for improving relevancy of reporting
+            fetch-depth: 0
+
+      - name: "Setup Node"
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      - name: "Install"
+        run: |
+          npm ci
+
+      - name: "Install"
+        run: |
+          npm test
+
