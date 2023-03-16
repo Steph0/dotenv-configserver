@@ -103,12 +103,21 @@ describe('Build environment filename', () => {
       // Then
       expect(filename).toEqual(`${ROOT}/${DIRECTORY}/${dotEnvFilenameNamePart}-${PROFILE}${dotEnvFilenameExtension}`);
     });
+
+    it("should allow env file to have only a '<profile>' filename", () => {
+
+      // Given, When
+      const filename = environmentFile.buildEnvFilename(ROOT, DIRECTORY, '', PROFILE);
+
+      // Then
+      expect(filename).toEqual(`${ROOT}/${DIRECTORY}/${PROFILE}`);
+    });
   });
 });
 
 describe('Load environment file', () => {
 
-  it("should load input environement file", () => {
+  it("should load input environment file", () => {
 
     // Given
     const dotEnvFileStub = path.join(path.resolve('test/resources/stubs'), 'toto.env');

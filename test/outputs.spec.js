@@ -9,33 +9,65 @@ describe('Outputs', () => {
     jest.clearAllMocks();
   });
 
-  it("should export data as env variables", () => {
+  describe('As GITHUB_ENV', () => {
 
-    // Given
-    const data = {test: 'exportVariable'};
-    const exportVariableSpy = jest.spyOn(core, 'exportVariable');
-    when(exportVariableSpy)
-      .expectCalledWith('test', 'exportVariable');
+    it("should export nothing as env variables", () => {
 
-    // When
-    outputs.exportToGithubEnv(data);
+      // Given
+      const exportVariableSpy = jest.spyOn(core, 'exportVariable');
 
-    //Then
-    verifyAllWhenMocksCalled();
+      // When
+      outputs.exportToGithubEnv();
+
+      //Then
+      expect(exportVariableSpy).not.toHaveBeenCalled();
+    });
+
+    it("should export data as env variables", () => {
+
+      // Given
+      const data = {test: 'exportVariable'};
+      const exportVariableSpy = jest.spyOn(core, 'exportVariable');
+      when(exportVariableSpy)
+        .expectCalledWith('test', 'exportVariable');
+
+      // When
+      outputs.exportToGithubEnv(data);
+
+      //Then
+      verifyAllWhenMocksCalled();
+    });
+
   });
 
-  it("should export data as action output", () => {
 
-    // Given
-    const data = {test: 'setOutput'};
-    const exportVariableSpy = jest.spyOn(core, 'setOutput');
-    when(exportVariableSpy)
-      .expectCalledWith('test', 'setOutput');
+  describe('As action outputs', () => {
+    it("should export nothing as action outputs", () => {
 
-    // When
-    outputs.exportToOutput(data);
+      // Given
+      const exportVariableSpy = jest.spyOn(core, 'exportVariable');
 
-    //Then
-    verifyAllWhenMocksCalled();
+      // When
+      outputs.exportToOutput();
+
+      //Then
+      expect(exportVariableSpy).not.toHaveBeenCalled();
+    });
+
+
+    it("should export data as action output", () => {
+
+      // Given
+      const data = {test: 'setOutput'};
+      const exportVariableSpy = jest.spyOn(core, 'setOutput');
+      when(exportVariableSpy)
+        .expectCalledWith('test', 'setOutput');
+
+      // When
+      outputs.exportToOutput(data);
+
+      //Then
+      verifyAllWhenMocksCalled();
+    });
   });
 });

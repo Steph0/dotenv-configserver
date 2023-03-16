@@ -14158,6 +14158,31 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 9018:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+const io = __nccwpck_require__(7436);
+
+/**
+ * Remove configserver files from runner
+ */
+exports.cleanup = async function(configDirectory, performCleanup = true) {
+    if(!configDirectory || configDirectory.replace(/\s/g,"") === "") {
+       throw new TypeError('Could not find a config directory to delete');
+    }
+ 
+    if (!performCleanup) {
+       core.warning('Downloaded configuration from configserver has not been cleaned from runner');
+       return;
+    }
+ 
+    await io.rmRF(configDirectory);
+    core.info(`Configuration cleaned from runner`);
+ }
+
+/***/ }),
+
 /***/ 2039:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -14235,8 +14260,8 @@ const dotenv = __nccwpck_require__(2437);
  */
 exports.buildEnvFilename = function(root, directory, filename, profile = '') {
 
-    if(!filename || filename.replace(/\s/g,"") === "") {
-        throw new TypeError("You must provide a filename");
+    if(profile.replace(/\s/g,"") === "" && (!filename || filename.replace(/\s/g,"") === "")) {
+        throw new TypeError("You must provide a filename or at least a profile");
     }
 
     const hasExtension = (filename.lastIndexOf('.') !== -1);
@@ -14257,6 +14282,8 @@ exports.buildEnvFilename = function(root, directory, filename, profile = '') {
             // Ex: profile=prod + filename=application.env => 'application-prod.env'
             profiledFilename = `${namePart}-${profile}${extensionPart}`;
         } else {
+            // Input has only a profile
+            // Ex: profile=prod + filename= => 'prod'
             profiledFilename = `${profile}${extensionPart}`;
         }
     }
@@ -14318,6 +14345,56 @@ exports.load = function() {
         cleanup: core.getInput('cleanup') || true
         };
     }
+
+/***/ }),
+
+/***/ 1713:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+const inputs = __nccwpck_require__(7229);
+const configserver = __nccwpck_require__(2039);
+const envFile = __nccwpck_require__(6222);
+const outputs = __nccwpck_require__(4368);
+const cleanup = __nccwpck_require__(9018);
+
+// Most @actions toolkit packages have async methods
+// 'core.debug' displays only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+exports.run = async function() {
+   try {
+      // Load inputs
+      const settings = inputs.load();
+      core.debug(settings);
+
+      // Clone remote configserver
+      const configDirectory = await configserver.fetch(settings.owner, settings.repo, settings.branch,
+         settings.token, settings.destination);
+
+      // Define file to look for in configserver
+      const configurationFile = envFile.buildEnvFilename(configDirectory, settings.directory,
+         settings.filename, settings.profile)
+      core.info(`Expected configuration filename: [${configurationFile}]`);
+
+      // Load targeted configserver file content
+      const envData = envFile.loadDotenvFile(configurationFile);
+      core.debug(envData);
+
+      // Publish file to GITHUB_ENV
+      outputs.exportToGithubEnv(envData);
+      core.info(`Configuration successfully loaded from configserver to GITHUB_ENV`);
+
+      // Publish file to output
+      outputs.exportToOutput(envData);
+      core.info(`Configuration successfully loaded from configserver to output`);
+
+      // Clean download env files
+      await cleanup.cleanup(configDirectory, settings.cleanup);
+
+   } catch (error) {
+      core.setFailed(error.message);
+   }
+}
+
 
 /***/ }),
 
@@ -14559,71 +14636,12 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
 (() => {
-const core = __nccwpck_require__(2186);
-const io = __nccwpck_require__(7436);
-const inputs = __nccwpck_require__(7229);
-const configserver = __nccwpck_require__(2039);
-const envFile = __nccwpck_require__(6222);
-const outputs = __nccwpck_require__(4368);
-
-
-/**
- * Remove configserver files from runner
- */
-const cleanup = async (configDirectory, performCleanup = true) => {
-   if (!configDirectory) {
-      throw new Error('Could not find a config directory to delete');
-   }
-
-   if (!performCleanup) {
-      core.warning('Downloaded configuration from configserver has not been cleaned from runner');
-      return;
-   }
-
-   await io.rmRF(configDirectory);
-   core.info(`Configuration cleaned from runner`);
-}
-
-
+const main = __nccwpck_require__(1713);
 
 // Most @actions toolkit packages have async methods
 // 'core.debug' displays only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
-async function run() {
-   try {
-      // Load inputs
-      const settings = inputs.load();
-      core.debug(settings);
 
-      // Clone remote configserver
-      const configDirectory = await configserver.fetch(settings.owner, settings.repo, settings.branch,
-         settings.token, settings.destination);
-
-      // Define file to look for in configserver
-      const configurationFile = envFile.buildEnvFilename(configDirectory, settings.directory,
-         settings.filename, settings.profile)
-      core.info(`Expected configuration filename: [${configurationFile}]`);
-
-      // Load targeted configserver file content
-      const envData = envFile.loadDotenvFile(configurationFile);
-      core.debug(envData);
-
-      // Publish file to GITHUB_ENV
-      outputs.exportToGithubEnv(envData);
-      core.info(`Configuration successfully loaded from configserver to GITHUB_ENV`);
-
-      // Publish file to output
-      outputs.exportToOutput(envData);
-      core.info(`Configuration successfully loaded from configserver to output`);
-
-      // Clean download env files
-      await cleanup(configDirectory, settings.cleanup);
-
-   } catch (error) {
-      core.setFailed(error.message);
-   }
-}
-
-run();
+main.run();
 
 })();
 

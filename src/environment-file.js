@@ -8,8 +8,8 @@ const dotenv = require('dotenv');
  */
 exports.buildEnvFilename = function(root, directory, filename, profile = '') {
 
-    if(!filename || filename.replace(/\s/g,"") === "") {
-        throw new TypeError("You must provide a filename");
+    if(profile.replace(/\s/g,"") === "" && (!filename || filename.replace(/\s/g,"") === "")) {
+        throw new TypeError("You must provide a filename or at least a profile");
     }
 
     const hasExtension = (filename.lastIndexOf('.') !== -1);
@@ -30,6 +30,8 @@ exports.buildEnvFilename = function(root, directory, filename, profile = '') {
             // Ex: profile=prod + filename=application.env => 'application-prod.env'
             profiledFilename = `${namePart}-${profile}${extensionPart}`;
         } else {
+            // Input has only a profile
+            // Ex: profile=prod + filename= => 'prod'
             profiledFilename = `${profile}${extensionPart}`;
         }
     }

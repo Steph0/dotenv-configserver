@@ -17,74 +17,87 @@ describe('Fetch configserver repository', () => {
   const BRANCH = 'main';
   const DESTINATION = '/notafolder';
 
+  const CURRENT_PLATFORM = process.platform;
+
   afterEach(() => {
     jest.clearAllMocks();
+    process.platform = CURRENT_PLATFORM;
   });
 
-  it("should return the configserver local filepath", async () => {
-
-    // Given
-    process.platform = 'linux'
-
-    const ioMkdirSpy = jest.spyOn(io, 'mkdirP');
-    when(ioMkdirSpy)
-      .expectCalledWith(DESTINATION)
-      .mockReturnValueOnce();
-
-    const downloadArchiveSpy = jest.fn();
-    when(downloadArchiveSpy)
-      .expectCalledWith({
-        owner: OWNER,
-        repo: REPO,
-        ref: BRANCH
-      })
-      .mockReturnValueOnce({
-        status: 200,
-        data: "data"
-      });
-
-    const githubSpy = jest.spyOn(github, 'getOctokit');
-    when(githubSpy)
-      .expectCalledWith(TOKEN)
-      .mockReturnValueOnce({
-        rest: {
-          repos: {
-            downloadZipballArchive: downloadArchiveSpy,
-            downloadTarballArchive: downloadArchiveSpy,
-          }
-        }
-      });
-
-    const writeFileSpy = jest.fn();
-    fs.promises.writeFile = writeFileSpy;
-    const expectedArchiveFilePath = `${DESTINATION}/archive-${REPO}-${FAKEUID}.tar.gz`;
-    when(writeFileSpy)
-      .expectCalledWith(expectedArchiveFilePath, expect.anything())
-      .mockResolvedValue();
-
-    const tcSpy = jest.spyOn(tc, 'extractTar');
-    when(tcSpy)
-      .expectCalledWith(expectedArchiveFilePath, `${DESTINATION}/${REPO}-${FAKEUID}`)
-      .mockResolvedValue();
-
-    const ioRmSpy = jest.spyOn(io, 'rmRF');
-    when(ioRmSpy)
-      .expectCalledWith(expectedArchiveFilePath)
-      .mockReturnValueOnce();
-
-    const readDirSpy = jest.fn();
-    fs.promises.readdir = readDirSpy;
-    when(readDirSpy)
-      .expectCalledWith(`${DESTINATION}/${REPO}-${FAKEUID}`)
-      .mockResolvedValue([DESTINATION]);
-
-    // When
-    const configServerPath = await configserver.fetch(OWNER, REPO, BRANCH, TOKEN, DESTINATION);
-
-    // Then
-    verifyAllWhenMocksCalled();
-    expect(configServerPath).toEqual(`${DESTINATION}/${REPO}-${FAKEUID}${DESTINATION}`);
+  afterAll(() => {
+    process.platform = CURRENT_PLATFORM;
   });
+
+  it
+    .each(
+      [['linux', 'tar.gz', 'extractTar'], ['win32', 'zip', 'extractZip']]
+    )("should return the configserver local filepath for platform '%s'",
+      async (platformSelected, extension, tcExtractFunction) => {
+
+        // Given
+        Object.defineProperty(process, 'platform', {
+          value: platformSelected
+        });
+
+        const ioMkdirSpy = jest.spyOn(io, 'mkdirP');
+        when(ioMkdirSpy)
+          .expectCalledWith(DESTINATION)
+          .mockReturnValueOnce();
+
+        const downloadArchiveSpy = jest.fn();
+        when(downloadArchiveSpy)
+          .expectCalledWith({
+            owner: OWNER,
+            repo: REPO,
+            ref: BRANCH
+          })
+          .mockReturnValueOnce({
+            status: 200,
+            data: "data"
+          });
+
+        const githubSpy = jest.spyOn(github, 'getOctokit');
+        when(githubSpy)
+          .expectCalledWith(TOKEN)
+          .mockReturnValueOnce({
+            rest: {
+              repos: {
+                downloadZipballArchive: downloadArchiveSpy,
+                downloadTarballArchive: downloadArchiveSpy,
+              }
+            }
+          });
+
+        const writeFileSpy = jest.fn();
+        fs.promises.writeFile = writeFileSpy;
+        const expectedArchiveFilePath = `${DESTINATION}/archive-${REPO}-${FAKEUID}.${extension}`;
+        when(writeFileSpy)
+          .expectCalledWith(expectedArchiveFilePath, expect.anything())
+          .mockResolvedValue();
+
+        const tcSpy = jest.spyOn(tc, tcExtractFunction);
+        when(tcSpy)
+          .expectCalledWith(expectedArchiveFilePath, `${DESTINATION}/${REPO}-${FAKEUID}`)
+          .mockResolvedValue();
+
+        const ioRmSpy = jest.spyOn(io, 'rmRF');
+        when(ioRmSpy)
+          .expectCalledWith(expectedArchiveFilePath)
+          .mockReturnValueOnce();
+
+        const readDirSpy = jest.fn();
+        fs.promises.readdir = readDirSpy;
+        when(readDirSpy)
+          .expectCalledWith(`${DESTINATION}/${REPO}-${FAKEUID}`)
+          .mockResolvedValue([DESTINATION]);
+
+        // When
+        const configServerPath = await configserver.fetch(OWNER, REPO, BRANCH, TOKEN, DESTINATION);
+
+        // Then
+        verifyAllWhenMocksCalled();
+        expect(configServerPath).toEqual(`${DESTINATION}/${REPO}-${FAKEUID}${DESTINATION}`);
+      });
 
   it("should return the configserver local filepath", async () => {
 

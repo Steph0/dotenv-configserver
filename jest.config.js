@@ -3,6 +3,6 @@ module.exports = {
   testEnvironment: 'node',
   collectCoverage: true,
   moduleFileExtensions: ["js"],
-  collectCoverageFrom: ["src/**/*.js", "index.js"],
+  collectCoverageFrom: ["src/**/*.js"],
   verbose: true
 }
