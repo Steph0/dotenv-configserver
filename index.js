@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
 const {v4: uuidv4} = require('uuid');
+const inputs = require('./src/inputs');
 
 /**
  * Sets env variable for the job
@@ -139,45 +140,14 @@ const cleanup = async (configDirectory, performCleanup = true) => {
    core.info(`Configuration cleaned from runner`);
 }
 
-const inputs = () => {
-   return {
-      // The repository to fetch (<owner>/<repo>)
-      repository: core.getInput('repository', { required: true }),
-      owner: core.getInput('repository', { required: true }).split('/')[0],
-      repo: core.getInput('repository', { required: true }).split('/')[1],
 
-      // This should be a token with access to your repository scoped in as a secret
-      // token: ${{ secrets.GITHUB_TOKEN }}
-      token: core.getInput('token', { required: true }),
-
-      // The remote branch to checkout (default: main)
-      branch: core.getInput('branch') || "main",
-
-      // The working folder to write configuration to (default 'RUNNER_TEMP')
-      destination: core.getInput('destination') || process.env['RUNNER_TEMP'] || '.',
-
-      // Look for file in subdirectory (default '.')
-      directory: core.getInput('directory') || '.',
-
-      // The config filename (default to '.env')
-      filename: core.getInput('filename') || ".env",
-
-      // profile for file (ex: 'prod' will make tool look for <filename_part>-<profile>.<filename_extension>)
-      // extension represents the last dot of a filename (if any)
-      // if empty, won't apply
-      profile: core.getInput('profile') || '',
-
-      // If false, won't delete configuration files downloaded after loading to GITHUB_ENV
-      cleanup: core.getInput('cleanup') || true
-   };
-}
 
 // Most @actions toolkit packages have async methods
 // 'core.debug' displays only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
 async function run() {
    try {
       // Load inputs
-      const settings = inputs();
+      const settings = inputs.load();
       core.debug(settings);
 
       // Clone remote configserver
