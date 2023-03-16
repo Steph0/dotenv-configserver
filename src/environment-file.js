@@ -6,7 +6,7 @@ const dotenv = require('dotenv');
 /**
  * Determines target configuration filename based on action settings
  */
-exports.buildEnvFilename = (root, directory, filename, profile = '') => {
+exports.buildEnvFilename = function(root, directory, filename, profile = '') {
 
     if(!filename || filename.replace(/\s/g,"") === "") {
         throw new TypeError("You must provide a filename");
@@ -41,7 +41,7 @@ exports.buildEnvFilename = (root, directory, filename, profile = '') => {
 /**
 * Parse env file
 */
-exports.loadDotenvFile = (filepath) => {
+exports.loadDotenvFile = function(filepath) {
   core.info(`Loading [${filepath}] file`);
   return dotenv.parse(
      fs.readFileSync(filepath)

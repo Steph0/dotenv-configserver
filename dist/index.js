@@ -14233,7 +14233,7 @@ const dotenv = __nccwpck_require__(2437);
 /**
  * Determines target configuration filename based on action settings
  */
-exports.buildEnvFilename = (root, directory, filename, profile = '') => {
+exports.buildEnvFilename = function(root, directory, filename, profile = '') {
 
     if(!filename || filename.replace(/\s/g,"") === "") {
         throw new TypeError("You must provide a filename");
@@ -14268,7 +14268,7 @@ exports.buildEnvFilename = (root, directory, filename, profile = '') => {
 /**
 * Parse env file
 */
-exports.loadDotenvFile = (filepath) => {
+exports.loadDotenvFile = function(filepath) {
   core.info(`Loading [${filepath}] file`);
   return dotenv.parse(
      fs.readFileSync(filepath)
@@ -14318,6 +14318,35 @@ exports.load = function() {
         cleanup: core.getInput('cleanup') || true
         };
     }
+
+/***/ }),
+
+/***/ 4368:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+
+/**
+ * Sets env variable for the job
+ */
+exports.exportToGithubEnv = function (envData = {}) {
+    core.info(`Exporting to GITHUB_ENV`);
+    for (const [envKey, envValue] of Object.entries(envData)) {
+        core.info(`Exporting to GITHUB_ENV [${envKey}: ${envValue}]`);
+        core.exportVariable(envKey, envValue);
+    }
+}
+
+/**
+* Sets output variable that can be used between jobs
+*/
+exports.exportToOutput = function (envData = {}) {
+    core.info(`Exporting to output`);
+    for (const [envKey, envValue] of Object.entries(envData)) {
+        core.info(`Exporting [${envKey}: ${envValue}]`);
+        core.setOutput(envKey, envValue);
+    }
+}
 
 /***/ }),
 
@@ -14535,28 +14564,7 @@ const io = __nccwpck_require__(7436);
 const inputs = __nccwpck_require__(7229);
 const configserver = __nccwpck_require__(2039);
 const envFile = __nccwpck_require__(6222);
-
-/**
- * Sets env variable for the job
- */
-const exportToGithubEnv = (envData = {}) => {
-   core.info(`Exporting to GITHUB_ENV`);
-   for (const [envKey, envValue] of Object.entries(envData)) {
-      core.info(`Exporting to GITHUB_ENV [${envKey}: ${envValue}]`);
-      core.exportVariable(envKey, envValue);
-   }
-}
-
-/**
- * Sets output variable that can be used between jobs
- */
-const exportToOutput = (envData = {}) => {
-   core.info(`Exporting to output`);
-   for (const [envKey, envValue] of Object.entries(envData)) {
-      core.info(`Exporting [${envKey}: ${envValue}]`);
-      core.setOutput(envKey, envValue);
-   }
-}
+const outputs = __nccwpck_require__(4368);
 
 
 /**
@@ -14600,11 +14608,11 @@ async function run() {
       core.debug(envData);
 
       // Publish file to GITHUB_ENV
-      exportToGithubEnv(envData);
+      outputs.exportToGithubEnv(envData);
       core.info(`Configuration successfully loaded from configserver to GITHUB_ENV`);
 
       // Publish file to output
-      exportToOutput(envData);
+      outputs.exportToOutput(envData);
       core.info(`Configuration successfully loaded from configserver to output`);
 
       // Clean download env files

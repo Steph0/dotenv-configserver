@@ -3,28 +3,7 @@ const io = require('@actions/io');
 const inputs = require('./src/inputs');
 const configserver = require('./src/configserver');
 const envFile = require('./src/environment-file');
-
-/**
- * Sets env variable for the job
- */
-const exportToGithubEnv = (envData = {}) => {
-   core.info(`Exporting to GITHUB_ENV`);
-   for (const [envKey, envValue] of Object.entries(envData)) {
-      core.info(`Exporting to GITHUB_ENV [${envKey}: ${envValue}]`);
-      core.exportVariable(envKey, envValue);
-   }
-}
-
-/**
- * Sets output variable that can be used between jobs
- */
-const exportToOutput = (envData = {}) => {
-   core.info(`Exporting to output`);
-   for (const [envKey, envValue] of Object.entries(envData)) {
-      core.info(`Exporting [${envKey}: ${envValue}]`);
-      core.setOutput(envKey, envValue);
-   }
-}
+const outputs = require('./src/outputs');
 
 
 /**
@@ -68,11 +47,11 @@ async function run() {
       core.debug(envData);
 
       // Publish file to GITHUB_ENV
-      exportToGithubEnv(envData);
+      outputs.exportToGithubEnv(envData);
       core.info(`Configuration successfully loaded from configserver to GITHUB_ENV`);
 
       // Publish file to output
-      exportToOutput(envData);
+      outputs.exportToOutput(envData);
       core.info(`Configuration successfully loaded from configserver to output`);
 
       // Clean download env files
