@@ -20,7 +20,7 @@ describe('Inputs', () => {
     // Given
     const getInputSpy = jest.spyOn(core, "getInput");
     when(getInputSpy)
-      .calledWith('repository', {required: true})
+      .expectCalledWith('repository', {required: true})
       .mockReturnValueOnce('Steph0/dotenv-configserver');
 
     // When, Then
@@ -32,11 +32,11 @@ describe('Inputs', () => {
     // Given
     const getInputSpy = jest.spyOn(core, "getInput");
     when(getInputSpy)
-      .calledWith('repository', {required: true})
+      .expectCalledWith('repository', {required: true})
       .mockReturnValueOnce('Steph0/dotenv-configserver');
     
     when(getInputSpy)
-      .calledWith('token', {required: true})
+      .expectCalledWith('token', {required: true})
       .mockReturnValueOnce('xxxxxxxxxxxxxxxxxx');
 
     // When
@@ -62,11 +62,11 @@ describe('Inputs', () => {
     // Given
     const getInputSpy = jest.spyOn(core, "getInput");
     when(getInputSpy)
-      .calledWith('repository', {required: true})
+      .expectCalledWith('repository', {required: true})
       .mockReturnValueOnce('Steph0/dotenv-configserver');
     
     when(getInputSpy)
-      .calledWith('token', {required: true})
+      .expectCalledWith('token', {required: true})
       .mockReturnValueOnce('xxxxxxxxxxxxxxxxxx');
 
     process.env.RUNNER_TEMP = 'tmpFolder'
