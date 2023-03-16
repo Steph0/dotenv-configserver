@@ -1,5 +1,7 @@
 const core = require('@actions/core');
 const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
 
 /**
  * Determines target configuration filename based on action settings
@@ -35,3 +37,13 @@ exports.buildEnvFilename = (root, directory, filename, profile = '') => {
     return path.join(root, directory, profiledFilename);
 
 }
+
+/**
+* Parse env file
+*/
+exports.loadDotenvFile = (filepath) => {
+  core.info(`Loading [${filepath}] file`);
+  return dotenv.parse(
+     fs.readFileSync(filepath)
+  );
+};

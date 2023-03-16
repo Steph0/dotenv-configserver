@@ -1,7 +1,5 @@
 const core = require('@actions/core');
 const io = require('@actions/io');
-const fs = require('fs');
-const dotenv = require('dotenv');
 const inputs = require('./src/inputs');
 const configserver = require('./src/configserver');
 const envFile = require('./src/environment-file');
@@ -27,17 +25,6 @@ const exportToOutput = (envData = {}) => {
       core.setOutput(envKey, envValue);
    }
 }
-
-/**
- * Parse env file
- */
-const loadDotenvFile = (filepath) => {
-   core.info(`Loading [${filepath}] file`);
-   return dotenv.parse(
-      fs.readFileSync(filepath)
-   );
-};
-
 
 
 /**
@@ -77,7 +64,7 @@ async function run() {
       core.info(`Expected configuration filename: [${configurationFile}]`);
 
       // Load targeted configserver file content
-      const envData = loadDotenvFile(configurationFile);
+      const envData = envFile.loadDotenvFile(configurationFile);
       core.debug(envData);
 
       // Publish file to GITHUB_ENV

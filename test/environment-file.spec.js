@@ -1,3 +1,5 @@
+
+const path = require('path');
 const environmentFile = require('../src/environment-file');
 
 describe('Build environment filename', () => {
@@ -100,6 +102,37 @@ describe('Build environment filename', () => {
 
       // Then
       expect(filename).toEqual(`${ROOT}/${DIRECTORY}/${dotEnvFilenameNamePart}-${PROFILE}${dotEnvFilenameExtension}`);
+    });
+  });
+});
+
+describe('Load environment file', () => {
+
+  it("should load input environement file", () => {
+
+    // Given
+    const dotEnvFileStub = path.join(path.resolve('test/resources/stubs'), 'toto.env');
+
+    // When
+    const results = environmentFile.loadDotenvFile(dotEnvFileStub);
+
+    // Then
+    expect(results).toEqual({
+      author: 'Steph0'
+    });
+  });
+
+  it("should load input environement file even if not a .env file", () => {
+
+    // Given
+    const dotEnvFileStub = path.join(path.resolve('test/resources/stubs'), 'toto.other');
+
+    // When
+    const results = environmentFile.loadDotenvFile(dotEnvFileStub);
+
+    // Then
+    expect(results).toEqual({
+      product: 'dotenv-configserver'
     });
   });
 });

@@ -14227,6 +14227,8 @@ exports.fetch = async function(owner, repo, branch, token, destination) {
 
 const core = __nccwpck_require__(2186);
 const path = __nccwpck_require__(1017);
+const fs = __nccwpck_require__(7147);
+const dotenv = __nccwpck_require__(2437);
 
 /**
  * Determines target configuration filename based on action settings
@@ -14262,6 +14264,16 @@ exports.buildEnvFilename = (root, directory, filename, profile = '') => {
     return path.join(root, directory, profiledFilename);
 
 }
+
+/**
+* Parse env file
+*/
+exports.loadDotenvFile = (filepath) => {
+  core.info(`Loading [${filepath}] file`);
+  return dotenv.parse(
+     fs.readFileSync(filepath)
+  );
+};
 
 /***/ }),
 
@@ -14520,8 +14532,6 @@ var __webpack_exports__ = {};
 (() => {
 const core = __nccwpck_require__(2186);
 const io = __nccwpck_require__(7436);
-const fs = __nccwpck_require__(7147);
-const dotenv = __nccwpck_require__(2437);
 const inputs = __nccwpck_require__(7229);
 const configserver = __nccwpck_require__(2039);
 const envFile = __nccwpck_require__(6222);
@@ -14547,17 +14557,6 @@ const exportToOutput = (envData = {}) => {
       core.setOutput(envKey, envValue);
    }
 }
-
-/**
- * Parse env file
- */
-const loadDotenvFile = (filepath) => {
-   core.info(`Loading [${filepath}] file`);
-   return dotenv.parse(
-      fs.readFileSync(filepath)
-   );
-};
-
 
 
 /**
@@ -14597,7 +14596,7 @@ async function run() {
       core.info(`Expected configuration filename: [${configurationFile}]`);
 
       // Load targeted configserver file content
-      const envData = loadDotenvFile(configurationFile);
+      const envData = envFile.loadDotenvFile(configurationFile);
       core.debug(envData);
 
       // Publish file to GITHUB_ENV
