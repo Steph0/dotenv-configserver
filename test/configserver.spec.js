@@ -7,9 +7,15 @@ const FAKEUID = 'fakeuid';
 jest.mock('uuid', () => ({v4: () => FAKEUID}));
 const when = require('jest-when').when;
 const verifyAllWhenMocksCalled = require('jest-when').verifyAllWhenMocksCalled;
-const fetchConfigserver = require('../src/fetch-configserver');
+const configserver = require('../src/configserver');
 
 describe('Fetch configserver repository', () => {
+
+  const TOKEN = 'xxxxx';
+  const OWNER = 'Steph0';
+  const REPO = 'dotenv-configserver';
+  const BRANCH = 'main';
+  const DESTINATION = '/notafolder';
 
   afterEach(() => {
     jest.clearAllMocks();
@@ -19,23 +25,18 @@ describe('Fetch configserver repository', () => {
 
     // Given
     process.platform = 'linux'
-    const token = 'xxxxx';
-    const owner = 'Steph0';
-    const repo = 'dotenv-configserver';
-    const branch = 'main';
-    const destination = '/notafolder';
 
     const ioMkdirSpy = jest.spyOn(io, 'mkdirP');
     when(ioMkdirSpy)
-      .expectCalledWith(destination)
+      .expectCalledWith(DESTINATION)
       .mockReturnValueOnce();
 
     const downloadArchiveSpy = jest.fn();
     when(downloadArchiveSpy)
       .expectCalledWith({
-        owner: owner,
-        repo: repo,
-        ref: branch
+        owner: OWNER,
+        repo: REPO,
+        ref: BRANCH
       })
       .mockReturnValueOnce({
         status: 200,
@@ -44,7 +45,7 @@ describe('Fetch configserver repository', () => {
 
     const githubSpy = jest.spyOn(github, 'getOctokit');
     when(githubSpy)
-      .expectCalledWith(token)
+      .expectCalledWith(TOKEN)
       .mockReturnValueOnce({
         rest: {
           repos: {
@@ -56,14 +57,14 @@ describe('Fetch configserver repository', () => {
 
     const writeFileSpy = jest.fn();
     fs.promises.writeFile = writeFileSpy;
-    const expectedArchiveFilePath = `${destination}/archive-${repo}-${FAKEUID}.tar.gz`;
+    const expectedArchiveFilePath = `${DESTINATION}/archive-${REPO}-${FAKEUID}.tar.gz`;
     when(writeFileSpy)
       .expectCalledWith(expectedArchiveFilePath, expect.anything())
       .mockResolvedValue();
 
     const tcSpy = jest.spyOn(tc, 'extractTar');
     when(tcSpy)
-      .expectCalledWith(expectedArchiveFilePath, `${destination}/${repo}-${FAKEUID}`)
+      .expectCalledWith(expectedArchiveFilePath, `${DESTINATION}/${REPO}-${FAKEUID}`)
       .mockResolvedValue();
 
     const ioRmSpy = jest.spyOn(io, 'rmRF');
@@ -74,38 +75,33 @@ describe('Fetch configserver repository', () => {
     const readDirSpy = jest.fn();
     fs.promises.readdir = readDirSpy;
     when(readDirSpy)
-      .expectCalledWith(`${destination}/${repo}-${FAKEUID}`)
-      .mockResolvedValue([destination]);
+      .expectCalledWith(`${DESTINATION}/${REPO}-${FAKEUID}`)
+      .mockResolvedValue([DESTINATION]);
 
     // When
-    const configServerPath = await fetchConfigserver.cloneDotenvConfig(owner, repo, branch, token, destination);
+    const configServerPath = await configserver.fetch(OWNER, REPO, BRANCH, TOKEN, DESTINATION);
 
     // Then
     verifyAllWhenMocksCalled();
-    expect(configServerPath).toEqual(`${destination}/${repo}-${FAKEUID}${destination}`);
+    expect(configServerPath).toEqual(`${DESTINATION}/${REPO}-${FAKEUID}${DESTINATION}`);
   });
 
   it("should return the configserver local filepath", async () => {
 
     // Given
     process.platform = 'linux'
-    const token = 'xxxxx';
-    const owner = 'Steph0';
-    const repo = 'dotenv-configserver';
-    const branch = 'main';
-    const destination = '/notafolder';
 
     const ioMkdirSpy = jest.spyOn(io, 'mkdirP');
     when(ioMkdirSpy)
-      .expectCalledWith(destination)
+      .expectCalledWith(DESTINATION)
       .mockReturnValueOnce();
 
     const downloadArchiveSpy = jest.fn();
     when(downloadArchiveSpy)
       .expectCalledWith({
-        owner: owner,
-        repo: repo,
-        ref: branch
+        owner: OWNER,
+        repo: REPO,
+        ref: BRANCH
       })
       .mockReturnValueOnce({
         status: 404,
@@ -114,7 +110,7 @@ describe('Fetch configserver repository', () => {
 
     const githubSpy = jest.spyOn(github, 'getOctokit');
     when(githubSpy)
-      .expectCalledWith(token)
+      .expectCalledWith(TOKEN)
       .mockReturnValueOnce({
         rest: {
           repos: {
@@ -125,8 +121,8 @@ describe('Fetch configserver repository', () => {
       });
 
     // When, Then
-    await expect(async () => await fetchConfigserver.cloneDotenvConfig(owner, repo, branch, token, destination))
-    .rejects
-    .toThrow(`Enable to fetch repository. HTTP:[404], content:[undefined]`);
+    await expect(async () => await configserver.fetch(OWNER, REPO, BRANCH, TOKEN, DESTINATION))
+      .rejects
+      .toThrow(`Enable to fetch repository. HTTP:[404], content:[undefined]`);
   });
 });

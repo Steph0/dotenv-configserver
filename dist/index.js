@@ -14158,7 +14158,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 2142:
+/***/ 2039:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 
@@ -14172,7 +14172,7 @@ const fs = __nccwpck_require__(7147);
 /**
  * Fetches files from remote configserver
  */
-exports.execute = async function(owner, repo, branch, token, destination) {
+exports.fetch = async function(owner, repo, branch, token, destination) {
     // Making sure target path is accessible
     await io.mkdirP(destination);
  
@@ -14219,6 +14219,49 @@ exports.execute = async function(owner, repo, branch, token, destination) {
  
     return dotenvConfigPath;
  };
+
+/***/ }),
+
+/***/ 6222:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(2186);
+const path = __nccwpck_require__(1017);
+
+/**
+ * Determines target configuration filename based on action settings
+ */
+exports.buildEnvFilename = (root, directory, filename, profile = '') => {
+
+    if(!filename || filename.replace(/\s/g,"") === "") {
+        throw new TypeError("You must provide a filename");
+    }
+
+    const hasExtension = (filename.lastIndexOf('.') !== -1);
+    const namePart = (hasExtension) ? filename.substring(0, filename.lastIndexOf('.')) : filename;
+    const extensionPart = (hasExtension) ? filename.substring(filename.lastIndexOf('.'), filename.length) : '';
+    core.debug(`${filename} -> name:[${namePart}], extension: [${extensionPart}]`);
+
+    // If no profile, just use current filename
+    let profiledFilename = `${namePart}${extensionPart}`;
+    if (profile) {
+        if (namePart === '' && extensionPart !== '') {
+            // Input from user has no filename (like just an extension '.env' file)
+            // Inject profile without the '-' part
+            // Ex: profile=prod + filename=.env => 'prod.env'
+            profiledFilename = `${profile}${extensionPart}`;
+        } else if (namePart !== '') {
+            // Input has name + extension, inject profile between name and extension
+            // Ex: profile=prod + filename=application.env => 'application-prod.env'
+            profiledFilename = `${namePart}-${profile}${extensionPart}`;
+        } else {
+            profiledFilename = `${profile}${extensionPart}`;
+        }
+    }
+
+    return path.join(root, directory, profiledFilename);
+
+}
 
 /***/ }),
 
@@ -14478,10 +14521,10 @@ var __webpack_exports__ = {};
 const core = __nccwpck_require__(2186);
 const io = __nccwpck_require__(7436);
 const fs = __nccwpck_require__(7147);
-const path = __nccwpck_require__(1017);
 const dotenv = __nccwpck_require__(2437);
 const inputs = __nccwpck_require__(7229);
-const fetchConfigserver = __nccwpck_require__(2142);
+const configserver = __nccwpck_require__(2039);
+const envFile = __nccwpck_require__(6222);
 
 /**
  * Sets env variable for the job
@@ -14503,38 +14546,6 @@ const exportToOutput = (envData = {}) => {
       core.info(`Exporting [${envKey}: ${envValue}]`);
       core.setOutput(envKey, envValue);
    }
-}
-
-/**
- * Determines target configuration filename based on action settings
- */
-const buildEnvFilename = (root, directory, filename, profile = '') => {
-
-   const hasExtension = (filename.lastIndexOf('.') !== -1);
-   const namePart = (hasExtension) ? filename.substring(0, filename.lastIndexOf('.')) : filename;
-   const extensionPart = (hasExtension) ? filename.substring(filename.lastIndexOf('.'), filename.length) : '';
-   core.debug(`${filename} -> name:[${namePart}], extension: [${extensionPart}]`);
-
-   // If no profile, just use current filename
-   let profiledFilename = filename;
-   if (profile) {
-      if (namePart === '' && extensionPart !== '') {
-         // Input from user has no filename (like just an extension '.env' file)
-         // Inject profile without the '-' part
-         // Ex: profile=prod + filename=.env => 'prod.env'
-         profiledFilename = `${profile}${extensionPart}`;
-      } else if (namePart !== '' && extensionPart === '') {
-         // Input from user has no extension, add '.env' to it automatically
-         // Ex: profile=prod + filename=application => 'application-prod.env'
-         profiledFilename = `${namePart}-${profile}.env`;
-      } else if (namePart !== '' && extensionPart !== '') {
-         // Input has name + extension, inject profile between name and extension
-         // Ex: profile=prod + filename=application.env => 'application-prod.env'
-         profiledFilename = `${namePart}-${profile}${extensionPart}`;
-      }
-   }
-
-   return path.join(root, directory, profiledFilename);
 }
 
 /**
@@ -14577,11 +14588,11 @@ async function run() {
       core.debug(settings);
 
       // Clone remote configserver
-      const configDirectory = await fetchConfigserver.execute(settings.owner, settings.repo, settings.branch,
+      const configDirectory = await configserver.fetch(settings.owner, settings.repo, settings.branch,
          settings.token, settings.destination);
 
       // Define file to look for in configserver
-      const configurationFile = buildEnvFilename(configDirectory, settings.directory,
+      const configurationFile = envFile.buildEnvFilename(configDirectory, settings.directory,
          settings.filename, settings.profile)
       core.info(`Expected configuration filename: [${configurationFile}]`);
 

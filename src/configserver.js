@@ -9,7 +9,7 @@ const fs = require('fs');
 /**
  * Fetches files from remote configserver
  */
-exports.execute = async function(owner, repo, branch, token, destination) {
+exports.fetch = async function(owner, repo, branch, token, destination) {
     // Making sure target path is accessible
     await io.mkdirP(destination);
  
