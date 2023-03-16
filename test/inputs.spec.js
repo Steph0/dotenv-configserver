@@ -4,8 +4,15 @@ const inputs = require('../src/inputs');
 
 describe('Inputs', () => {
 
+  const INITIAL_RUNNER_TEMP = process.env.RUNNER_TEMP;
+
   afterEach(() => {
     jest.clearAllMocks();
+    process.env.RUNNER_TEMP = INITIAL_RUNNER_TEMP;
+  });
+
+  afterAll(() => {
+    process.env.RUNNER_TEMP = INITIAL_RUNNER_TEMP;
   });
 
   it("should fail on missing required 'repository' input", () => {
@@ -38,6 +45,9 @@ describe('Inputs', () => {
     when(getInputSpy)
       .expectCalledWith('token', {required: true})
       .mockReturnValueOnce('xxxxxxxxxxxxxxxxxx');
+
+    // Force undefined value to use last fallback
+    delete process.env['RUNNER_TEMP'];
 
     // When
     const results = inputs.load();
