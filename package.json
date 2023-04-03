@@ -1,6 +1,6 @@
 {
   "name": "dotenv-configserver",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Load remote config to GITHUB_ENV from a config server repository",
   "main": "index.js",
   "scripts": {
